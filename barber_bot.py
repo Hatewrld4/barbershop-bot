@@ -4,11 +4,14 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 from barber_db import add_appointment
 
+# Завантажуємо токен
 load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
 
+# Твій Telegram ID для доступу до адмінки
 ADMIN_ID = 1717915313 
 
+# --- ФУНКЦІЇ БОТА ---
 
 async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
@@ -24,7 +27,6 @@ async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("❌ У вас немає доступу до цієї команди.")
 
-
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [[InlineKeyboardButton("✂️ Записатися", callback_data="start_booking")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -32,9 +34,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Вітаємо в Барбершопі 'NINJA'! 🥷\nНатисніть кнопку нижче, щоб обрати послугу та час.", 
         reply_markup=reply_markup
     )
-    
 
-# Обробка всіх натискань на кнопки
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -49,10 +49,9 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ]
         await query.edit_message_text("Оберіть послугу:", reply_markup=InlineKeyboardMarkup(keyboard))
 
-    # Крок 2: Вибір часу (спрацьовує, якщо обрали послугу)
+    # Крок 2: Вибір часу
     elif data.startswith("srv_"):
         service = data.split("_")[1]
-        # Зберігаємо обрану послугу в тимчасову пам'ять
         context.user_data['service'] = service 
         
         keyboard = [
@@ -64,23 +63,30 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ]
         await query.edit_message_text(f"Ви обрали: {service}. Тепер оберіть зручний час:", reply_markup=InlineKeyboardMarkup(keyboard))
 
-    # Крок 3: Підтвердження запису (спрацьовує, якщо обрали час)
+    # Крок 3: Підтвердження запису
     elif data.startswith("time_"):
         time = data.split("_")[1]
         service = context.user_data.get('service', 'Невідома послуга')
         user_id = query.from_user.id
         username = query.from_user.username or query.from_user.first_name
 
-        # Зберігаємо в базу даних
         add_appointment(user_id, username, service, time)
 
         await query.edit_message_text(
             f"✅ Успішно!\n\nКлієнт: @{username}\nПослуга: {service}\nЧас: {time}\n\nЧекаємо на вас!"
         )
-application.add_handler(CommandHandler("admin", admin_panel))
-app = ApplicationBuilder().token(TOKEN).build()
-app.add_handler(CommandHandler("start", start))
-app.add_handler(CallbackQueryHandler(button_handler))
 
-print("Барбер-бот запущений!")
-app.run_polling()
+# --- ЗАПУСК БОТА ---
+if __name__ == '__main__':
+    # Створюємо об'єкт бота
+    app = ApplicationBuilder().token(TOKEN).build()
+
+    # Реєструємо всі команди та кнопки (саме тут їхнє правильне місце)
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("admin", admin_panel))
+    app.add_handler(CallbackQueryHandler(button_handler))
+
+    print("Барбер-бот запущений!")
+    
+    # Запускаємо процес
+    app.run_polling()
