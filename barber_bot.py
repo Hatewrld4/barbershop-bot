@@ -7,7 +7,24 @@ from barber_db import add_appointment
 load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
 
-# Головне меню
+ADMIN_ID = 1717915313 
+
+
+async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    
+    if user_id == ADMIN_ID:
+        await update.message.reply_text(
+            "👑 Вітаю в панелі Адміністратора!\n\n"
+            "Тут ми зробимо кнопки:\n"
+            "1. ➕ Додати вільний час\n"
+            "2. ❌ Видалити час\n"
+            "3. 📋 Подивитися всі записи на сьогодні"
+        )
+    else:
+        await update.message.reply_text("❌ У вас немає доступу до цієї команди.")
+
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [[InlineKeyboardButton("✂️ Записатися", callback_data="start_booking")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
