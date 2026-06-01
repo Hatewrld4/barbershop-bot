@@ -32,6 +32,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Вітаємо в Барбершопі 'NINJA'! 🥷\nНатисніть кнопку нижче, щоб обрати послугу та час.", 
         reply_markup=reply_markup
     )
+    
 
 # Обробка всіх натискань на кнопки
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -76,7 +77,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text(
             f"✅ Успішно!\n\nКлієнт: @{username}\nПослуга: {service}\nЧас: {time}\n\nЧекаємо на вас!"
         )
-
+application.add_handler(CommandHandler("admin", admin_panel))
 app = ApplicationBuilder().token(TOKEN).build()
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CallbackQueryHandler(button_handler))
